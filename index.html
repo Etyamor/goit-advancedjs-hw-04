@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/goit-advancedjs-hw-04/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Bank</title>
+    <script type="module" crossorigin src="/goit-advancedjs-hw-04/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/goit-advancedjs-hw-04/assets/vendor-Bi0bPHun.js">
+    <link rel="stylesheet" crossorigin href="/goit-advancedjs-hw-04/assets/index-Bj2GV_2C.css">
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <form class="form js-form">
+          <label class="form-label">
+            <input
+              class="form-input js-search-input"
+              name="user-query"
+              type="text"
+              placeholder="Search images..."
+            />
+          </label>
+          <button class="form-submit-btn js-submit-btn" type="submit">
+            Search
+          </button>
+        </form>
+        <ul class="gallery-container js-gallery"></ul>
+      </div>
+      <button
+        class="load-more form-submit-btn js-submit-btn"
+        style="display: none"
+      >
+        Load more
+      </button>
+    </main>
+    <div class="loader-wrapper js-loader">
+      <span class="loader"></span>
+    </div>
+  </body>
+</html>
