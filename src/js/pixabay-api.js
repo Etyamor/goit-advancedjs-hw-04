@@ -1,61 +1,31 @@
-import iziToast from 'izitoast';
 import axios from 'axios';
 
-const API_KEY = '48010442-005cbb84b5a65166ca3b031bb';
-const API_URL = 'https://pixabay.com/api/';
+export const fetchImages = async (searchQuery, page) => {
+  const API_KEY = '48010442-005cbb84b5a65166ca3b031bb';
+  const URL = `https://pixabay.com/api/`;
 
-axios.defaults.baseURL = API_URL;
-
-const fetchApiData = (queryValue, page, perPage) => {
-  const searchParams = new URLSearchParams({
-    key: API_KEY,
-    q: queryValue.trim(),
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page: page,
-    per_page: perPage,
-  });
-
-  return axios.get(`https://pixabay.com/api/?${searchParams}`)
-    .then(response => {
-      if (response.status != 200) {
-        console.log(response);
-        iziToast.error({
-          message:
-            'Something went wrong. Please try again later',
-          position: 'topRight',
-        });
-        throw new Error(response.status);
-      }
-      console.log(typeof response);
-      console.log(response);
-      return response.data;
-    })
-    .then(data => {
-      if (!data.total) {
-        iziToast.error({
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topRight',
-        });
-        return [];
-      }
-
-      return {
-        images: data.hits,
-        total: data.totalHits,
-      };
-    })
-    .catch(error => {
-      iziToast.error({
-        message:
-          'Something went wrong. Please try again later',
-        position: 'topRight',
-      });
-      console.log(error);
-      return [];
+  try {
+    const response = await axios.get(URL, {
+      params: {
+        key: API_KEY,
+        q: searchQuery,
+        image_type: 'photo',
+        orientation: 'horizontal',
+        safesearch: true,
+        page: page,
+        per_page: 15,
+      },
     });
-};
 
-export default fetchApiData;
+    return {
+      images: response.data.hits,
+      totalHits: response.data.totalHits,
+    };
+  } catch (error) {
+    console.log('Error fetching images:', error);
+    return {
+      images: [],
+      totalHits: 0,
+    };
+  }
+};

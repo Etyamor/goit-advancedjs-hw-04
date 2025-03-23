@@ -1,81 +1,55 @@
-import SimpleLightbox from 'simplelightbox';
-import fetchApiData from './js/pixabay-api';
-import generateGalleryMarkup from './js/render-functions';
-import iziToast from 'izitoast';
+import { fetchImages } from './js/pixabay-api.js';
+import { renderImages, showLoader, hideLoader } from './js/render-functions.js';
 
-let page = 1, lastQuery = '';
+let searchQuery = '';
+let currentPage = 1;
+let totalHits = 0;
 
-const perPage = 15,
-  loadMoreGap = 44,
-  formElement = document.querySelector('.js-form'),
-  loaderElement = document.querySelector('.js-loader'),
-  loadMoreBtn = document.querySelector('.load-more'),
-  galleryContainer = document.querySelector('.js-gallery'),
-  simpleLightboxInstance = new SimpleLightbox('.js-gallery a.gallery-link', {
-    captionDelay: 250,
-    overlayOpacity: 0.8,
-  }),
-  submitHandler = event => {
-    event.preventDefault();
-    if (lastQuery === query && page == 1) {
-      return;
-    }
+const form = document.querySelector('.form');
+const input = form.querySelector('input[type="text"]');
+const gallery = document.querySelector('.gallery');
+const loadMoreButton = document.querySelector('#load-more-button');
+const loader = document.querySelector('.loader');
 
-    loaderElement.style.display = 'flex';
-    var query = event.target.elements['user-query'].value;
-    lastQuery = query;
-    page = 1;
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  searchQuery = input.value.trim();
 
-    fetchApiData(query, page, perPage)
-      .then(response => {
-        if (response.length == 0) {
-          galleryContainer.innerHTML = '';
-          loadMoreBtn.style.display = 'none';
-          return;
-        }
-        let images = response.images;
-        galleryContainer.innerHTML = generateGalleryMarkup(images);
-        simpleLightboxInstance.refresh();
-        loadMoreBtn.style.display = (response.total > perPage) ? 'block' : 'none';
-      })
-      .finally(() => {
-        formElement.reset();
-        loaderElement.style.display = 'none';
-      });
-  },
-  loadMoreHandler = async () => {
-    page += 1;
-    loaderElement.style.display = 'flex';
-    fetchApiData(lastQuery, page, perPage)
-      .then(response => {
-        let images = response.images;
-        galleryContainer.insertAdjacentHTML('beforeend', generateGalleryMarkup(images));
-        simpleLightboxInstance.refresh();
-        let totalShownElements = page * perPage;
-        if (totalShownElements >= response.total) {
-          loadMoreBtn.style.display = 'none';
-          iziToast.info({
-            message:
-              "We're sorry, but you've reached the end of search results.",
-            position: 'topRight',
-          });
-        }
-      })
-      .finally(() => {
-        formElement.reset();
-        setTimeout(() => {
-          const galleryCards = document.querySelectorAll('.gallery-card');
-          const lastGalleryCard = galleryCards[galleryCards.length - 1];
-          const height = lastGalleryCard.offsetHeight;
-          loaderElement.style.display = 'none';
-          window.scrollBy({
-            top: height * 2 - loadMoreGap,
-            behavior: 'smooth',
-          });
-        }, 500);
-      });
+  if (!searchQuery) return;
+
+  currentPage = 1;
+  showLoader();
+  loadMoreButton.style.display = 'none';
+  loader.style.display = 'block';
+  gallery.innerHTML = '';
+
+  const { images, totalHits: total } = await fetchImages(searchQuery, currentPage);
+  renderImages(images);
+
+  totalHits = total;  // Update the totalHits variable
+  hideLoader();
+  loader.style.display = 'none';
+  loadMoreButton.style.display = currentPage * 15 >= totalHits ? 'none' : 'block';
+});
+
+loadMoreButton.addEventListener('click', async () => {
+  currentPage++;
+  const { images, totalHits: total } = await fetchImages(searchQuery, currentPage);
+  renderImages(images);
+
+  totalHits = total;  // Update the totalHits variable
+  if (currentPage * 15 >= totalHits) {
+    loadMoreButton.style.display = 'none';
+    alert("We're sorry, but you've reached the end of search results.");
   }
 
-formElement.addEventListener('submit', submitHandler);
+  scrollPage();
+});
 
-loadMoreBtn.addEventListener('click', loadMoreHandler);
+const scrollPage = () => {
+  const cardHeight = document.querySelector('.image-card').getBoundingClientRect().height;
+  window.scrollBy({
+    top: cardHeight * 2, 
+    behavior: 'smooth',
+  });
+};

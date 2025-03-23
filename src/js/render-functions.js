@@ -1,38 +1,45 @@
-const generateGalleryMarkup = images => {
-  return images.reduce(
-    (
-      acc,
-      { webformatURL, largeImageURL, tags, likes, views, comments, downloads }
-    ) => {
-      return (
-        acc +
-        `<li class="gallery-card">
-              <a class="gallery-link" href="${largeImageURL}">
-                <img class="gallery-image" src="${webformatURL}" alt="${tags}" loading="lazy" />
-                <ul class="gallery-card-info">
-                  <li>
-                    <p>Likes</p>
-                    <p>${likes}</p>
-                  </li>
-                  <li>
-                    <p>Views</p>
-                    <p>${views}</p>
-                  </li>
-                  <li>
-                    <p>Comments</p>
-                    <p>${comments}</p>
-                  </li>
-                  <li>
-                    <p>Downloads</p>
-                    <p>${downloads}</p>
-                  </li>
-                </ul>
-              </a>
-            </li>`
-      );
-    },
-    ''
-  );
+import iziToast from 'izitoast';
+import SimpleLightbox from 'simplelightbox';
+import 'izitoast/dist/css/iziToast.min.css';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+
+export const renderImages = (images) => {
+  const gallery = document.querySelector('.gallery');
+  if (images?.length === 0) {
+    iziToast.error({
+      message: 'Sorry, there are no images matching your search query. Please try again!',
+      position: 'topRight',
+    });
+    return;
+  }
+
+  images.forEach((image) => {
+    const imageElement = document.createElement('div');
+    imageElement.classList.add('image-card');
+    imageElement.innerHTML = `
+      <a href="${image.largeImageURL}" class="gallery-link">
+        <img src="${image.webformatURL}" alt="${image.tags}" class="gallery-image" />
+      </a>
+      <div class="image-info">
+        <p><strong>Likes</strong> <span>${image.likes}</span></p>
+        <p><strong>Views</strong> <span>${image.views}</span></p>
+        <p><strong>Comments</strong> <span>${image.comments}</span></p>
+        <p><strong>Downloads</strong> <span>${image.downloads}</span></p>
+      </div>
+    `;
+    gallery.appendChild(imageElement);
+  });
+
+  const lightbox = new SimpleLightbox('.gallery a');
+  lightbox.refresh();
 };
 
-export default generateGalleryMarkup;
+export const showLoader = () => {
+  const loader = document.querySelector('.loader');
+  loader.classList.add('active');
+};
+
+export const hideLoader = () => {
+  const loader = document.querySelector('.loader');
+  loader.classList.remove('active');
+};
